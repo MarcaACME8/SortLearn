@@ -8,6 +8,6 @@
 - Después del despliegue, comprobar /api/health y realizar diagnóstico, ejercicios y evaluación final.
 - La base de datos local no se migra automáticamente.
 
-Estado al 14 de octubre de 2026: proyecto sort-learn creado en Vercel (equipo WarIII) y base sortlearn-db de Neon conectada con plan Free. Se aprobaron 17 pruebas locales. Pendiente: aplicar la conexión mediante un nuevo despliegue y validar el recorrido público.
+Estado documentado al 14 de octubre de 2026: proyecto sort-learn creado en Vercel (equipo WarIII) y base sortlearn-db de Neon conectada con plan Free. Se aprobaron 20 pruebas locales tras corregir navegación asíncrona, resaltado de pseudocódigo y consultas de sesión. Pendiente: comprobar la configuración actual, aplicar la conexión mediante un nuevo despliegue y validar el recorrido público.
 
 Dirección asignada: https://sort-learn.vercel.app. La integración administra DATABASE_URL como variable sensible; las credenciales no se guardan en el repositorio.

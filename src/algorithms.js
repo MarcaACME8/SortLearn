@@ -6,7 +6,13 @@ export function traceSort(algorithm, input) {
   }
   const a = [...input], steps = [];
   const record = (kind, indices = [], description = '') =>
-    steps.push({ values: [...a], kind, indices: [...indices], description });
+    steps.push({ values: [...a], kind, indices: [...indices], description,
+      codeLine: kind === 'complete' ? null : ({
+        bubble: {initial:0,compare:1,swap:2},
+        insertion: {initial:0,compare:1,swap:2},
+        merge: {initial:0,split:0,compare:2,write:3},
+        quick: {initial:0,pivot:0,compare:1,swap:2}
+      }[algorithm]?.[kind] ?? null) });
   const swap = (i, j) => {
     [a[i], a[j]] = [a[j], a[i]];
     record('swap', [i, j], 'Intercambiar los elementos señalados.');

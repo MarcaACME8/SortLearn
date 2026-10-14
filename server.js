@@ -37,7 +37,8 @@ export function createHandler(pool) {
    const db=await pool.connect();
    try{
     await db.query('BEGIN');
-    const session=(await db.query('SELECT * FROM learning_sessions WHERE id=$1 FOR UPDATE',[token])).rows[0];
+    const readOnly=req.method==='GET';
+    const session=(await db.query('SELECT * FROM learning_sessions WHERE id=$1'+(readOnly?'':' FOR UPDATE'),[token])).rows[0];
     if(!session)throw problem('La sesión ya no está disponible.',401);
     const evaluations=(await db.query('SELECT kind,correct,total,created_at FROM evaluations WHERE session_id=$1 ORDER BY created_at',[token])).rows;
     const diagnostic=evaluations.find(e=>e.kind==='diagnostic');
@@ -95,7 +96,7 @@ export function createHandler(pool) {
      state.practiced=[...new Set([...state.practiced,q.algorithm])];
      result={correct,explanation:q.explanation,correctAnswer:q.answer};
     }else throw problem('Ruta no disponible.',404);
-    await db.query('UPDATE learning_sessions SET state=$2 WHERE id=$1',[token,state]);
+    if(!readOnly && ['/api/viewed','/api/draft','/api/evaluate','/api/exercise'].includes(url.pathname))await db.query('UPDATE learning_sessions SET state=$2 WHERE id=$1',[token,state]);
     await db.query('COMMIT');send(200,result);
    }catch(error){await db.query('ROLLBACK');throw error;}finally{db.release();}
    return;

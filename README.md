@@ -65,6 +65,6 @@ Las pruebas de integración usan una base PostgreSQL embebida en memoria y no mo
 
 ## Límites actuales
 
-Aplicación local, todavía sin despliegue público. Pendientes la evaluación con estudiantes, aprobación del docente, pruebas en Google Chrome y medición formal de rendimiento bajo condiciones acordadas. El banco inicial contiene seis preguntas por evaluación y un ejercicio por algoritmo. Las marcas para revisar preguntas se mantienen durante la vista actual; las respuestas sí se guardan en base de datos.
+La ejecución local está verificada. Hay configuración y preparativos de despliegue en Vercel documentados en [docs/vercel.md](docs/vercel.md); el recorrido público todavía está pendiente de validación. Pendientes también la evaluación con estudiantes, aprobación del docente, pruebas en Google Chrome y medición formal de rendimiento bajo condiciones acordadas. El banco inicial contiene seis preguntas por evaluación y un ejercicio por algoritmo. Las marcas para revisar preguntas se mantienen durante la vista actual; las respuestas sí se guardan en base de datos.
 
 Las fuentes y los recursos gráficos se sirven localmente. Los nombres, porcentajes, avance y retroalimentación son datos reales de la sesión, no los valores de muestra de los mockups.

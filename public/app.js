@@ -11,7 +11,7 @@ async function api(path,data){
  if(!response.ok){const error=new Error(payload.error||'No fue posible completar la operación.');error.status=response.status;throw error;}
  return payload;
 }
-const refresh=async()=>{session=await api('session');renderHeader();};
+const refresh=async(version=routeVersion)=>{const current=await api('session');if(version!==routeVersion)return false;session=current;renderHeader();return true;};
 const alg=()=>session.algorithms.find(a=>a.id===active);
 const hasDiagnostic=()=>session?.evaluations.some(e=>e.kind==='diagnostic');
 const hasFinal=()=>session?.evaluations.some(e=>e.kind==='final');
@@ -39,7 +39,7 @@ function theory(){
 function visual(){
  if(!player)player=new Playback(traceSort(active,[28,12,45,35,80]));
  const a=alg(),s=player.current,history=player.steps.slice(0,player.index+1),max=Math.max(1,...s.values.map(v=>Math.abs(v)));
- main.innerHTML='<section class="card row between visual-header"><div><span class="badge">ALGORITMO ACTIVO</span><h2>'+a.name+' · Modo Interactivo</h2><p aria-live="polite">'+img('e08d6.svg')+' '+escape(s.description)+'</p></div><span class="badge">Paso '+(player.index+1)+' de '+player.steps.length+'</span></section><section class="card visual-card"><div class="row between wrap"><span class="mono">ÍNDICES DE ARREGLO [0 .. '+(s.values.length-1)+'] · N = '+s.values.length+'</span><div class="legend"><span><i class="dot"></i>Sin evaluar</span><span><i class="dot purple"></i>Activo</span><span><i class="dot green"></i>Ordenado</span></div></div><div class="bars" role="img" aria-label="'+escape(s.values.join(', '))+'. '+escape(s.description)+'">'+s.values.map((v,i)=>'<div class="bar-column '+(s.kind==='complete'?'done':s.indices[0]===i?'active':s.indices.includes(i)?'secondary-active':'')+'"><span class="bar-label">'+v+'</span><div class="bar" style="height:'+Math.max(8,Math.abs(v)/max*220)+'px">'+v+'</div><span class="bar-index">['+i+']</span></div>').join('')+'</div></section><div class="grid controls-grid"><section class="card"><div class="row between"><span class="eyebrow">CONTROL DE EJECUCIÓN</span><small>Modo paso a paso asistido</small></div><div class="play-controls"><button class="round" data-action="reset" aria-label="Reiniciar">'+img('7cec6.svg')+'</button><button class="round" data-action="previous" aria-label="Paso anterior" '+(player.index===0?'disabled':'')+'>'+img('f5981.svg')+'</button><button class="primary" data-action="play" '+(s.kind==='complete'?'disabled':'')+'>'+img('3246b.svg')+' '+(timer?'Pausar':'Continuar')+'</button><button class="round" data-action="next" aria-label="Paso siguiente" '+(s.kind==='complete'?'disabled':'')+'>'+img('d0f76.svg')+'</button></div><div class="row between wrap"><label>Velocidad de Simulación <select id="speed"><option value="1400" '+(speed===1400?'selected':'')+'>Lento</option><option value="800" '+(speed===800?'selected':'')+'>Normal</option><option value="250" '+(speed===250?'selected':'')+'>Rápido</option></select></label><button class="secondary" data-action="random">'+img('67181.svg')+' Aleatorio</button></div><form id="numbers-form" class="custom-input"><input type="text" id="numbers" aria-label="Mis números separados por comas" placeholder="Mis números: 5, 1, 4, 2, 8"><button class="secondary" type="submit">'+img('b13a5.svg')+' Aplicar</button></form><small>Entre 2 y 12 números, de −999 a 999. Separados por comas.</small></section><section class="card"><div class="eyebrow">'+img('e04f2.svg')+' PSEUDOCÓDIGO EN VIVO</div><div class="code">'+a.code.map((line,i)=>'<div class="'+(i===({initial:0,pivot:0,split:0,compare:1,swap:2,write:3,complete:3}[s.kind])?'current':'')+'">'+(i+1)+'  '+escape(line)+'</div>').join('')+'</div><div class="stats"><div><span>Comparaciones</span>'+history.filter(s=>s.kind==='compare').length+'</div><div><span>Intercambios / copias</span>'+history.filter(s=>['swap','write'].includes(s.kind)).length+'</div><div><span>Estado</span>'+(s.kind==='complete'?'Terminado':'En proceso')+'</div></div></section></div><aside class="recommendation">'+img('9f23d.svg')+'<div><strong>Nota didáctica</strong><p>'+a.detail+(a.id==='merge'?' Durante las copias, la lista visible puede repetir valores temporalmente; los originales permanecen en las mitades auxiliares.':'')+'</p></div>'+link('exercise/'+a.id,'Practicar '+img('af966.svg'))+'</aside>';
+ main.innerHTML='<section class="card row between visual-header"><div><span class="badge">ALGORITMO ACTIVO</span><h2>'+a.name+' · Modo Interactivo</h2><p aria-live="polite">'+img('e08d6.svg')+' '+escape(s.description)+'</p></div><span class="badge">Paso '+(player.index+1)+' de '+player.steps.length+'</span></section><section class="card visual-card"><div class="row between wrap"><span class="mono">ÍNDICES DE ARREGLO [0 .. '+(s.values.length-1)+'] · N = '+s.values.length+'</span><div class="legend"><span><i class="dot"></i>Sin evaluar</span><span><i class="dot purple"></i>Activo</span><span><i class="dot green"></i>Ordenado</span></div></div><div class="bars" role="img" aria-label="'+escape(s.values.join(', '))+'. '+escape(s.description)+'">'+s.values.map((v,i)=>'<div class="bar-column '+(s.kind==='complete'?'done':s.indices[0]===i?'active':s.indices.includes(i)?'secondary-active':'')+'"><span class="bar-label">'+v+'</span><div class="bar" style="height:'+Math.max(8,Math.abs(v)/max*220)+'px">'+v+'</div><span class="bar-index">['+i+']</span></div>').join('')+'</div></section><div class="grid controls-grid"><section class="card"><div class="row between"><span class="eyebrow">CONTROL DE EJECUCIÓN</span><small>Modo paso a paso asistido</small></div><div class="play-controls"><button class="round" data-action="reset" aria-label="Reiniciar">'+img('7cec6.svg')+'</button><button class="round" data-action="previous" aria-label="Paso anterior" '+(player.index===0?'disabled':'')+'>'+img('f5981.svg')+'</button><button class="primary" data-action="play" '+(s.kind==='complete'?'disabled':'')+'>'+img('3246b.svg')+' '+(timer?'Pausar':'Continuar')+'</button><button class="round" data-action="next" aria-label="Paso siguiente" '+(s.kind==='complete'?'disabled':'')+'>'+img('d0f76.svg')+'</button></div><div class="row between wrap"><label>Velocidad de Simulación <select id="speed"><option value="1400" '+(speed===1400?'selected':'')+'>Lento</option><option value="800" '+(speed===800?'selected':'')+'>Normal</option><option value="250" '+(speed===250?'selected':'')+'>Rápido</option></select></label><button class="secondary" data-action="random">'+img('67181.svg')+' Aleatorio</button></div><form id="numbers-form" class="custom-input"><input type="text" id="numbers" aria-label="Mis números separados por comas" placeholder="Mis números: 5, 1, 4, 2, 8"><button class="secondary" type="submit">'+img('b13a5.svg')+' Aplicar</button></form><small>Entre 2 y 12 números, de −999 a 999. Separados por comas.</small></section><section class="card"><div class="eyebrow">'+img('e04f2.svg')+' PSEUDOCÓDIGO EN VIVO</div><div class="code">'+a.code.map((line,i)=>'<div class="'+(i===s.codeLine?'current':'')+'">'+(i+1)+'  '+escape(line)+'</div>').join('')+'</div><div class="stats"><div><span>Comparaciones</span>'+history.filter(s=>s.kind==='compare').length+'</div><div><span>Intercambios / copias</span>'+history.filter(s=>['swap','write'].includes(s.kind)).length+'</div><div><span>Estado</span>'+(s.kind==='complete'?'Terminado':'En proceso')+'</div></div></section></div><aside class="recommendation">'+img('9f23d.svg')+'<div><strong>Nota didáctica</strong><p>'+a.detail+(a.id==='merge'?' Durante las copias, la lista visible puede repetir valores temporalmente; los originales permanecen en las mitades auxiliares.':'')+'</p></div>'+link('exercise/'+a.id,'Practicar '+img('af966.svg'))+'</aside>';
 }
 const options=(q,selected)=>q.options.map((text,i)=>'<button class="option '+(selected===i?'selected':'')+'" data-answer="'+i+'" role="radio" aria-checked="'+(selected===i)+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+escape(text)+'</span></button>').join('');
 function exerciseView(){
@@ -73,7 +73,7 @@ async function route(){
    active=session.algorithms.some(a=>a.id===id)?id:'bubble';renderHeader();
   }
   if(page==='catalog'){catalog();}
-  else if(page==='theory'){await api('viewed',{algorithm:active});await refresh();if(version===routeVersion)theory();}
+  else if(page==='theory'){await api('viewed',{algorithm:active});if(version!==routeVersion)return;await refresh(version);if(version===routeVersion)theory();}
   else if(page==='visual'){if(!session.state.viewed.includes(active)){location.hash='theory/'+active;return;}player=new Playback(traceSort(active,[28,12,45,35,80]));visual();}
   else if(page==='exercise'){
    if(!session.state.viewed.includes(active)){location.hash='theory/'+active;return;}
@@ -85,7 +85,7 @@ async function route(){
    if(kind==='final'&&(session.state.viewed.length<4||completed()<4)){main.innerHTML='<section class="card empty"><h1>Completa tu recorrido</h1><p>Consulta el contenido y responde el ejercicio de cada uno de los cuatro algoritmos. Llevas '+completed()+' de 4 practicados.</p>'+link('catalog','Volver a los algoritmos','primary')+'</section>';return;}
    const bank=await api('questions?kind='+kind);if(version!==routeVersion)return;
    exam={kind,questions:bank,index:0,answers:session.state.drafts[kind]||{},marked:new Set(),saved:false};examView();
-  }else if(page==='results'){await refresh();if(version===routeVersion)results();}
+  }else if(page==='results'){await refresh(version);if(version===routeVersion)results();}
   else{location.hash='home';}
   main.focus({preventScroll:true});window.scrollTo(0,0);
  }catch(error){if(version===routeVersion)main.innerHTML='<section class="card empty"><h2>No pudimos cargar esta sección</h2><p>'+escape(error.message)+'</p><button class="primary" data-action="reload">Volver a intentar</button></section>';}
@@ -112,7 +112,7 @@ document.addEventListener('click',async event=>{
   const action=button.dataset.action; if(action==='skip'){main.focus();main.scrollIntoView();return;}
   if(action==='help'){document.querySelector('#help').showModal();return;}
   if(button.id==='close-help'){document.querySelector('#help').close();return;}
-  if(action==='logout'){stop();await api('logout',{});session=null;exam=null;exercise=null;location.hash='home';renderHeader();home();return;}
+  if(action==='logout'){++routeVersion;stop();await api('logout',{});session=null;exam=null;exercise=null;location.hash='home';renderHeader();home();return;}
   if(action==='reload'){await route();return;}
   if(button.dataset.filter){filter=button.dataset.filter;catalog();return;}
   if(['next','previous','reset','play','random'].includes(action)){
@@ -127,15 +127,16 @@ document.addEventListener('click',async event=>{
    if(location.hash.startsWith('#exam')){
     busy=true;const target=exam;const q=target.questions[target.index];const next={...target.answers,[q.id]:answer};
     button.disabled=true; document.querySelector('#save-status').textContent='Guardando respuesta…';
-    try{await api('draft',{kind:target.kind,answers:next});target.answers=next;target.saved=true;busy=false;if(exam===target&&location.hash.startsWith('#exam'))examView();}
-    finally{busy=false;button.disabled=false;}
+    const version=routeVersion;
+    try{await api('draft',{kind:target.kind,answers:next});target.answers=next;target.saved=true;if(version===routeVersion){busy=false;if(exam===target&&location.hash.startsWith('#exam'))examView();}}
+    finally{if(version===routeVersion)busy=false;button.disabled=false;}
    }else if(exercise){exercise.answer=answer;exerciseView();}
    return;
   }
   if(action==='check'){
    if(busy)return;if(exercise.answer===undefined){notice('Selecciona una respuesta antes de continuar.');return;}
-   busy=true;button.disabled=true;
-   try{feedback=await api('exercise',{id:exercise.question.id,answer:exercise.answer});await refresh();feedbackView();}finally{busy=false;button.disabled=false;}
+   busy=true;button.disabled=true;const version=routeVersion,target=exercise;
+   try{const result=await api('exercise',{id:target.question.id,answer:target.answer});if(version!==routeVersion)return;if(!await refresh(version))return;feedback=result;feedbackView();}finally{if(version===routeVersion)busy=false;button.disabled=false;}
   }
   if(action==='retry'){exercise.answer=undefined;feedback=null;exerciseView();}
   if(action==='mark'){const id=exam.questions[exam.index].id;exam.marked.has(id)?exam.marked.delete(id):exam.marked.add(id);examView();}
@@ -146,8 +147,8 @@ document.addEventListener('click',async event=>{
   if(action==='finish'){
    const pending=exam.questions.findIndex(q=>!Object.hasOwn(exam.answers,q.id));
    if(pending!==-1){exam.index=pending;examView();notice('Completa todas las preguntas antes de finalizar.');return;}
-   busy=true;button.disabled=true;
-   try{await api('evaluate',{kind:exam.kind,answers:exam.answers});await refresh();location.hash='results';}finally{busy=false;button.disabled=false;}
+   busy=true;button.disabled=true;const version=routeVersion,target=exam;
+   try{await api('evaluate',{kind:target.kind,answers:target.answers});if(version!==routeVersion)return;if(!await refresh(version))return;location.hash='results';}finally{if(version===routeVersion)busy=false;button.disabled=false;}
   }
   if(action==='print')window.print();
  }catch(error){notice(error.message);}
