@@ -1,0 +1,19 @@
+{
+  "browser": "msedge",
+  "version": "155.0.4283.45",
+  "status": "passed",
+  "screenshots": [
+    "01-inicio",
+    "02-diagnostico",
+    "03-catalogo",
+    "04-contenido",
+    "05-visualizador",
+    "06-ejercicios",
+    "07-retroalimentacion",
+    "08-resultados",
+    "09-movil",
+    "10-movil-visualizador"
+  ],
+  "errors": [],
+  "date": "2026-10-14T17:12:53.791Z"
+}
