@@ -8,17 +8,20 @@ import {publicQuestion} from './src/content.js';
 const root=resolve(fileURLToPath(new URL('./public/',import.meta.url)));
 const problem=(message,status=400)=>Object.assign(new Error(message),{status});
 async function body(req) {
+ if(req.body!==undefined){const parsed=typeof req.body==='string'?req.body:JSON.stringify(req.body);if(parsed.length>16000)throw problem('Solicitud demasiado grande.',413);try{return JSON.parse(parsed);}catch{throw problem('Solicitud inválida.');}}
  let value='';
  for await(const chunk of req){value+=chunk;if(value.length>16000)throw problem('Solicitud demasiado grande.',413);}
  try{return JSON.parse(value||'{}');}catch{throw problem('Solicitud inválida.');}
 }
-export function createApp(pool) {
- return http.createServer(async(req,res)=>{
+export function createHandler(pool) {
+ return async(req,res)=>{
  const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  try {
   const url=new URL(req.url,'http://localhost');
+  const protocol=process.env.VERCEL==='1'?'https':(req.socket?.encrypted?'https':'http');
+  const secureCookie=protocol==='https'?'; Secure':'';
   if(url.pathname.startsWith('/api/')){
-   if(req.method!=='GET' && req.headers.origin && req.headers.origin!== 'http://'+req.headers.host)throw problem('Origen no permitido.',403);
+   if(req.method!=='GET' && req.headers.origin && req.headers.origin!== protocol+'://'+req.headers.host)throw problem('Origen no permitido.',403);
    if(req.method==='POST' && !req.headers['content-type']?.startsWith('application/json'))throw problem('Se requiere JSON.',415);
    if(url.pathname==='/api/health'){send(200,{ok:!!(await pool.query('SELECT 1')).rowCount});return;}
    if(req.method==='POST' && url.pathname==='/api/session'){
@@ -26,7 +29,7 @@ export function createApp(pool) {
     if(typeof name!=='string'||!name.trim()||name.trim().length>80)throw problem('Escribe tu nombre (máximo 80 caracteres).');
     const id=randomUUID();
     await pool.query('INSERT INTO learning_sessions(id,name) VALUES($1,$2)',[id,name.trim()]);
-    res.setHeader('Set-Cookie','sortlearn='+id+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000');
+    res.setHeader('Set-Cookie','sortlearn='+id+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000'+secureCookie);
     send(201,{name:name.trim()});return;
    }
    const token=req.headers.cookie?.match(/(?:^|;\s*)sortlearn=([a-f0-9-]{36})(?:;|$)/)?.[1];
@@ -107,8 +110,9 @@ export function createApp(pool) {
   res.writeHead(200,{'Content-Type':(types[extname(file)]||'application/octet-stream')+'; charset=utf-8','X-Content-Type-Options':'nosniff','Cache-Control':'no-cache'});
   res.end(req.method==='HEAD'?undefined:data);
  }catch(error){if(!error.status)console.error(error.message);send(error.status||500,{error:error.status?error.message:'No fue posible completar la operación. Inténtalo nuevamente.'});}
- });
+ };
 }
+export function createApp(pool) { return http.createServer(createHandler(pool)); }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{const pool=await connectDatabase();const server=createApp(pool);server.listen(Number(process.env.PORT||3100),'127.0.0.1',()=>console.log('SortLearn: http://127.0.0.1:'+(process.env.PORT||3100)));
  for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>server.close(async()=>{await pool.end();process.exit(0);}));
