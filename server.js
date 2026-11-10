@@ -94,7 +94,7 @@ export function createHandler(pool) {
      const correct=answer===q.answer;
      await db.query('INSERT INTO exercise_attempts(session_id,question_id,answer,correct) VALUES($1,$2,$3,$4)',[token,id,answer,correct]);
      state.practiced=[...new Set([...state.practiced,q.algorithm])];
-     result={correct,explanation:q.explanation,correctAnswer:q.answer};
+     result={correct,explanation:q.explanation,correctAnswer:q.answer,solution:q.solution};
     }else throw problem('Ruta no disponible.',404);
     if(!readOnly && ['/api/viewed','/api/draft','/api/evaluate','/api/exercise'].includes(url.pathname))await db.query('UPDATE learning_sessions SET state=$2 WHERE id=$1',[token,state]);
     await db.query('COMMIT');send(200,result);

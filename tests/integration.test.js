@@ -42,6 +42,12 @@ test('recorrido integrado con PostgreSQL embebido',async t=>{
   assert.equal((await a('evaluate',{kind:'final',answers:answers('final')})).status,409);
   assert.equal((await a('exercise',{id:'e-bubble',answer:0})).status,409);
  });
+ await t.test('doce ejercicios sin soluciones anticipadas y tres por algoritmo',async()=>{
+  const bank=await a('questions?kind=exercise');
+  assert.equal(bank.body.length,12);
+  for(const id of ['bubble','insertion','merge','quick'])assert.equal(bank.body.filter(q=>q.algorithm===id).length,3);
+  assert.ok(bank.body.every(q=>q.answer===undefined&&q.explanation===undefined&&q.solution===undefined));
+ });
  await t.test('contenidos, validación de ejercicios y retroalimentación',async()=>{
   assert.equal((await a('viewed',{algorithm:'unknown'})).status,400);
   for(const id of ['bubble','insertion','merge','quick']){
@@ -51,7 +57,7 @@ test('recorrido integrado con PostgreSQL embebido',async t=>{
    const wrong=await a('exercise',{id:q.id,answer:(q.answer+1)%q.options.length});
    assert.equal(wrong.body.correct,false);assert.ok(wrong.body.explanation);
    const correct=await a('exercise',{id:q.id,answer:q.answer});
-   assert.equal(correct.body.correct,true);
+   assert.equal(correct.body.correct,true);assert.equal(correct.body.solution.length,3);
   }
   assert.equal((await a('session')).body.state.practiced.length,4);
  });
