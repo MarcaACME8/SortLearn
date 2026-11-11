@@ -150,3 +150,10 @@ button:disabled{opacity:1;background:#e2e8f0;color:#364152;border:1px solid #849
 @media(max-width:800px){.route-checklist li{grid-template-columns:1fr}.practice-nav .secondary{flex:1;min-width:130px}.final-access{padding:24px}.solution-steps{padding-left:22px}}
 
 .home-algos{color:var(--muted)}
+
+/* Cada algoritmo reúne su teoría, visualización y ejercicios. */
+.algorithm-context{margin-bottom:28px;padding:24px;background:white;border:1px solid var(--line);border-radius:12px}
+.algorithm-context h2{margin:6px 0 0;font-size:24px}
+.algorithm-nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.algorithm-nav .selected{background:var(--blue);color:white;border-color:var(--blue)}
+@media(max-width:800px){.algorithm-context{padding:20px}.algorithm-context h2{font-size:21px}.algorithm-nav .secondary{flex:1;text-align:center;justify-content:center}}
